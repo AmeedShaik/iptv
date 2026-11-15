@@ -1,0 +1,24 @@
+{
+  "name": "iptv-dashboard-android",
+  "version": "1.0.0",
+  "private": true,
+  "description": "IPTV Dashboard (iptv-org playlists) packaged as an Android app with Capacitor and native ExoPlayer playback",
+  "scripts": {
+    "build:css": "tailwindcss -c tailwind.config.js -i src/tailwind.input.css -o www/assets/css/tailwind.css --minify",
+    "build:vendor": "node scripts/copy-vendor.js",
+    "build:web": "npm run build:css && npm run build:vendor",
+    "sync": "npm run build:web && cap sync android",
+    "apk": "npm run sync && cd android && gradlew.bat assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capgo/capacitor-video-player": "^8.3.3",
+    "hls.js": "^1.5.15"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.0.0",
+    "lucide": "^0.469.0",
+    "tailwindcss": "^3.4.17"
+  }
+}

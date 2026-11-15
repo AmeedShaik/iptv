@@ -1,0 +1,17 @@
+{
+  "appId": "com.iptv.dashboard",
+  "appName": "IPTV Dashboard",
+  "webDir": "www",
+  "backgroundColor": "#020617",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  },
+  "plugins": {
+    "CapacitorHttp": { "enabled": true },
+    "SystemBars": { "insetsHandling": "css" }
+  }
+}

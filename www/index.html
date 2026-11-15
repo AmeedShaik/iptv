@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>IPTV Dashboard</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css" />
+  <link rel="stylesheet" href="assets/css/custom.css" />
+</head>
+<body class="bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-200">
+  <div class="app-shell">
+    <header class="flex items-center justify-between gap-2 px-3 py-2 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80">
+      <div class="flex items-center gap-1 min-w-0">
+        <button id="backBtn" class="icon-btn hidden" title="Back"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+        <i data-lucide="tv" class="w-5 h-5 text-emerald-500 shrink-0"></i>
+        <span id="title" class="font-semibold truncate ml-1">IPTV Dashboard</span>
+      </div>
+      <div class="flex items-center gap-1 shrink-0">
+        <button id="refreshBtn" class="icon-btn hidden" title="Re-download playlist"><i data-lucide="refresh-cw" class="w-5 h-5"></i></button>
+        <button id="themeBtn" class="icon-btn" title="Toggle theme"><i data-lucide="sun-moon" class="w-5 h-5"></i></button>
+      </div>
+    </header>
+
+    <!-- HOME: pick a country / category / language -->
+    <section id="homeView" class="flex-1 min-h-0 flex flex-col gap-2 px-3 pt-3 pb-2">
+      <div class="flex gap-2">
+        <button class="tab on" data-kind="countries">Countries</button>
+        <button class="tab" data-kind="categories">Categories</button>
+        <button class="tab" data-kind="languages">Languages</button>
+      </div>
+      <input id="homeSearch" type="search" placeholder="Search..." class="input w-full" />
+      <div id="shortcuts" class="flex gap-2 flex-wrap"></div>
+      <div id="homeList" class="flex-1 min-h-0 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 content-start"></div>
+      <details class="text-sm">
+        <summary class="cursor-pointer text-slate-500 py-1">Custom playlist URL</summary>
+        <div class="flex gap-2 mt-2">
+          <input id="customUrl" type="url" inputmode="url" placeholder="https://example.com/playlist.m3u" class="input flex-1 min-w-0" />
+          <button id="loadCustom" class="btn-primary">Load</button>
+        </div>
+      </details>
+    </section>
+
+    <!-- CHANNELS -->
+    <div id="channelView" class="hidden flex-1 min-h-0 flex flex-col">
+      <div id="status" class="px-3 pt-2 text-xs text-slate-500 truncate">&nbsp;</div>
+
+      <main class="content px-3 py-3 gap-3">
+        <aside class="card flex flex-col gap-2 flex-1 min-h-0">
+          <div class="flex gap-2">
+            <input id="search" type="search" placeholder="Search channels..." class="input flex-1 min-w-0" />
+            <button id="favOnly" class="icon-btn border border-slate-300 dark:border-slate-700" title="Show favorites only">
+              <i data-lucide="star" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <select id="groupSel" class="input"><option value="">All groups</option></select>
+          <div id="listCount" class="text-xs text-slate-500">&nbsp;</div>
+          <div id="list" class="flex-1 min-h-0 overflow-y-auto -mx-1 px-1 space-y-1"></div>
+        </aside>
+
+        <!-- Browser-preview player (hidden inside the Android app, which uses native ExoPlayer) -->
+        <section id="playerCol" class="flex flex-col gap-3 min-w-0 order-first lg:order-none">
+          <div class="card p-0 overflow-hidden">
+            <div class="relative bg-black aspect-video">
+              <video id="video" class="w-full h-full" controls autoplay playsinline></video>
+              <div id="overlay" class="absolute inset-0 flex items-center justify-center text-center p-6 text-slate-300 text-sm pointer-events-none">
+                Select a channel to start watching
+              </div>
+            </div>
+          </div>
+          <div class="card flex items-center gap-3">
+            <img id="npLogo" alt="" class="w-12 h-12 object-contain rounded bg-slate-200 dark:bg-slate-800 hidden" referrerpolicy="no-referrer" />
+            <div class="min-w-0 flex-1">
+              <div id="npName" class="font-semibold truncate">Nothing playing</div>
+              <div id="npMeta" class="text-xs text-slate-500 truncate">&nbsp;</div>
+            </div>
+            <button id="prevBtn" class="icon-btn" title="Previous channel"><i data-lucide="skip-back" class="w-5 h-5"></i></button>
+            <button id="nextBtn" class="icon-btn" title="Next channel"><i data-lucide="skip-forward" class="w-5 h-5"></i></button>
+            <button id="npFav" class="icon-btn" title="Toggle favorite"><i data-lucide="star" class="w-5 h-5"></i></button>
+          </div>
+          <p class="hidden lg:block text-xs text-slate-500 px-1">
+            Browser preview: many streams are blocked by CORS here. The Android app plays them with native ExoPlayer instead.
+          </p>
+        </section>
+      </main>
+
+      <!-- Now-playing bar (Android app only) -->
+      <div id="npBar" class="native-only items-center gap-3 px-3 py-2 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <img id="barLogo" alt="" class="w-10 h-10 object-contain rounded bg-slate-200 dark:bg-slate-800 hidden" referrerpolicy="no-referrer" />
+        <div class="min-w-0 flex-1">
+          <div id="barName" class="text-sm font-semibold truncate">Nothing playing</div>
+          <div id="barMeta" class="text-xs text-slate-500 truncate">Tap a channel to watch</div>
+        </div>
+        <button id="barPrev" class="icon-btn" title="Previous channel"><i data-lucide="skip-back" class="w-5 h-5"></i></button>
+        <button id="barPlay" class="icon-btn text-emerald-500" title="Play"><i data-lucide="play" class="w-6 h-6"></i></button>
+        <button id="barNext" class="icon-btn" title="Next channel"><i data-lucide="skip-forward" class="w-5 h-5"></i></button>
+        <button id="barFav" class="icon-btn" title="Toggle favorite"><i data-lucide="star" class="w-5 h-5"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/vendor/lucide.min.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
