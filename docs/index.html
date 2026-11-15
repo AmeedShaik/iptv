@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>IPTV Dashboard</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css" />
+  <link rel="stylesheet" href="assets/css/custom.css" />
+</head>
+<body class="bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-200">
+  <div class="app-shell">
+    <header class="flex items-center justify-between gap-2 px-3 py-2 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80">
+      <div class="flex items-center gap-1 min-w-0">
+        <button id="backBtn" class="icon-btn hidden" title="Back"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+        <i data-lucide="tv" class="w-5 h-5 text-emerald-500 shrink-0"></i>
+        <span id="title" class="font-semibold truncate ml-1">IPTV Dashboard</span>
+      </div>
+      <div class="flex items-center gap-1 shrink-0">
+        <button id="refreshBtn" class="icon-btn hidden" title="Re-download playlist"><i data-lucide="refresh-cw" class="w-5 h-5"></i></button>
+        <button id="settingsBtn" class="icon-btn relative" title="Proxy settings">
+          <i data-lucide="settings" class="w-5 h-5"></i>
+          <span id="proxyDot" class="proxy-dot hidden"></span>
+        </button>
+        <button id="themeBtn" class="icon-btn" title="Toggle theme"><i data-lucide="sun-moon" class="w-5 h-5"></i></button>
+      </div>
+    </header>
+
+    <!-- HOME: pick a country / category / language -->
+    <section id="homeView" class="flex-1 min-h-0 flex flex-col gap-2 px-3 pt-3 pb-2">
+      <div class="flex gap-2">
+        <button class="tab on" data-kind="countries">Countries</button>
+        <button class="tab" data-kind="categories">Categories</button>
+        <button class="tab" data-kind="languages">Languages</button>
+      </div>
+      <input id="homeSearch" type="search" placeholder="Search..." class="input w-full" />
+      <div id="shortcuts" class="flex gap-2 flex-wrap"></div>
+      <div id="homeList" class="flex-1 min-h-0 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 content-start"></div>
+      <details class="text-sm">
+        <summary class="cursor-pointer text-slate-500 py-1">Custom playlist URL</summary>
+        <div class="flex gap-2 mt-2">
+          <input id="customUrl" type="url" inputmode="url" placeholder="https://example.com/playlist.m3u" class="input flex-1 min-w-0" />
+          <button id="loadCustom" class="btn-primary">Load</button>
+        </div>
+        <p class="text-xs text-slate-500 mt-1">Playlists from other sites often need the proxy (Settings, then "Also use for playlists").</p>
+      </details>
+    </section>
+
+    <!-- CHANNELS -->
+    <div id="channelView" class="hidden flex-1 min-h-0 flex flex-col">
+      <div id="status" class="px-3 pt-2 text-xs text-slate-500 truncate">&nbsp;</div>
+
+      <main class="content px-3 py-3 gap-3">
+        <aside class="card flex flex-col gap-2 flex-1 min-h-0">
+          <div class="flex gap-2">
+            <input id="search" type="search" placeholder="Search channels..." class="input flex-1 min-w-0" />
+            <button id="favOnly" class="icon-btn border border-slate-300 dark:border-slate-700" title="Show favorites only">
+              <i data-lucide="star" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <select id="groupSel" class="input"><option value="">All groups</option></select>
+          <div id="listCount" class="text-xs text-slate-500">&nbsp;</div>
+          <div id="list" class="flex-1 min-h-0 overflow-y-auto -mx-1 px-1 space-y-1"></div>
+        </aside>
+
+        <section id="playerCol" class="flex flex-col gap-3 min-w-0 order-first lg:order-none">
+          <div class="card p-0 overflow-hidden">
+            <div class="relative bg-black aspect-video">
+              <video id="video" class="w-full h-full" controls autoplay playsinline></video>
+              <div id="overlay" class="absolute inset-0 flex flex-col gap-3 items-center justify-center text-center p-6 text-slate-300 text-sm pointer-events-none">
+                Select a channel to start watching
+              </div>
+            </div>
+          </div>
+          <div class="card flex items-center gap-3">
+            <img id="npLogo" alt="" class="w-12 h-12 object-contain rounded bg-slate-200 dark:bg-slate-800 hidden" referrerpolicy="no-referrer" />
+            <div class="min-w-0 flex-1">
+              <div id="npName" class="font-semibold truncate">Nothing playing</div>
+              <div id="npMeta" class="text-xs text-slate-500 truncate">&nbsp;</div>
+            </div>
+            <button id="prevBtn" class="icon-btn" title="Previous channel"><i data-lucide="skip-back" class="w-5 h-5"></i></button>
+            <button id="nextBtn" class="icon-btn" title="Next channel"><i data-lucide="skip-forward" class="w-5 h-5"></i></button>
+            <button id="npFav" class="icon-btn" title="Toggle favorite"><i data-lucide="star" class="w-5 h-5"></i></button>
+          </div>
+          <p class="hidden lg:block text-xs text-slate-500 px-1">
+            If a channel will not play, it may be offline, geo-blocked, or blocked by the browser (CORS or http://).
+            A proxy can fix the last two: open Settings (gear icon).
+          </p>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Proxy settings -->
+  <dialog id="settingsDlg" class="dlg">
+    <div class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="font-semibold text-base">Proxy settings</h2>
+        <button id="dlgClose" class="icon-btn" title="Close"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <p class="text-xs text-slate-500">
+        A proxy lets your browser play streams that block cross-origin requests or use http:// on this https page.
+        Your proxy address is saved only in this browser.
+      </p>
+      <label class="flex items-center gap-2 text-sm cursor-pointer">
+        <input id="pxEnabled" type="checkbox" class="accent-emerald-500" /> Use proxy for streams
+      </label>
+      <div>
+        <label for="pxUrl" class="text-xs text-slate-500">Proxy URL</label>
+        <input id="pxUrl" type="url" placeholder="https://your-proxy.workers.dev/?url={url}" class="input w-full" />
+        <p class="text-xs text-slate-500 mt-1"><code>{url}</code> is replaced by the encoded stream address. If you leave it out, the address is added to the end.</p>
+      </div>
+      <label class="flex items-center gap-2 text-sm cursor-pointer">
+        <input id="pxPlaylists" type="checkbox" class="accent-emerald-500" /> Also use for playlists
+      </label>
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="pxTest" class="btn-ghost">Test</button>
+        <button id="pxSave" class="btn-primary">Save</button>
+        <button id="pxReset" class="btn-ghost">Reset</button>
+      </div>
+      <div id="pxResult" class="text-sm min-h-[1.25rem]"></div>
+      <details class="text-sm">
+        <summary class="cursor-pointer text-slate-500">Set up a free proxy (Cloudflare Worker)</summary>
+        <ol class="list-decimal ml-5 mt-2 space-y-1 text-xs text-slate-500">
+          <li>Create a free account at dash.cloudflare.com, then open Workers &amp; Pages and choose Create, then Worker.</li>
+          <li>Replace the sample code with the contents of <code>proxy/cloudflare-worker.js</code> from this repository (set ALLOWED_ORIGINS to your site address) and click Deploy.</li>
+          <li>Copy the worker address, for example <code>https://iptv-proxy.yourname.workers.dev</code>, and enter it above as <code>https://iptv-proxy.yourname.workers.dev/?url={url}</code>.</li>
+          <li>Press Test, then Save.</li>
+        </ol>
+      </details>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/vendor/lucide.min.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
